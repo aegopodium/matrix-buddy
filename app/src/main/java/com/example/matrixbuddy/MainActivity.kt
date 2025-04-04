@@ -55,6 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 
+import androidx.compose.material3.Surface
+
+data class Quadrant(
+    val name: String,
+    val color: Color
+)
+
 val provider = Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
@@ -82,7 +89,7 @@ val AppTypography = Typography(
     titleLarge = TextStyle(
         fontFamily = interFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 22.sp
+        fontSize = 18.sp
     )
 )
 
@@ -94,6 +101,7 @@ class MainActivity : ComponentActivity() {
             MatrixBuddyTheme {
 
                 var isSheetOpen by remember { mutableStateOf(false) }
+                var selectedQuadrant by remember { mutableStateOf<Quadrant?>(null) }
 
                 Scaffold(
                     modifier = Modifier
@@ -105,7 +113,21 @@ class MainActivity : ComponentActivity() {
                     floatingActionButtonPosition = FabPosition.Center
                 ) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
-                        MatrixBuddyApp()
+                        MatrixBuddyApp(
+                            onQuadrantClick = { name, color -> selectedQuadrant = Quadrant(name, color) }
+                        )
+
+                        AnimatedVisibility(
+                            visible = selectedQuadrant != null,
+                            enter = fadeIn(animationSpec = tween(300)),
+                            exit = fadeOut(animationSpec = tween(300))
+                        ) {
+                            ExpandedQuadrant(
+                                quadrantName = selectedQuadrant!!.name,
+                                color = selectedQuadrant!!.color,
+                                onClose = { selectedQuadrant = null }
+                            )
+                        }
 
                         AnimatedVisibility(
                             visible = isSheetOpen,
@@ -125,7 +147,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MatrixBuddyTheme(
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
+
 ) {
     MaterialTheme(
         colorScheme = LightColorScheme,
@@ -135,30 +158,34 @@ fun MatrixBuddyTheme(
 }
 
 @Composable
-fun MatrixBuddyApp(modifier: Modifier = Modifier) {
+fun MatrixBuddyApp(
+    modifier: Modifier = Modifier,
+    onQuadrantClick: (String, Color) -> Unit) {
     Column(
         modifier = modifier
             .fillMaxSize()
             // .border(1.dp, Color.Red)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 // .border(1.dp, Color.Red)
                 .weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             QuadrantBox(
-                title = "Important & Urgent",
+                title = "Important + Urgent",
                 color = UrgentRed,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = { onQuadrantClick("Important + Urgent", UrgentRed) }
             )
             QuadrantBox(
-                title = "Important & Not Urgent",
+                title = "Important",
                 color = ImportantGreen,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = { onQuadrantClick("Important", ImportantGreen) }
             )
         }
         Row(
@@ -166,17 +193,19 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 // .border(1.dp, Color.Red)
                 .weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             QuadrantBox(
-                title = "Not Important & Urgent",
+                title = "Urgent",
                 color = NotImportantUrgentYellow,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = { onQuadrantClick("Urgent", NotImportantUrgentYellow) }
             )
             QuadrantBox(
-                title = "Not Important & Not Urgent",
+                title = "Low Priority",
                 color = NotImportantNotUrgentGray,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = { onQuadrantClick("Low Priority", NotImportantNotUrgentGray) }
             )
         }
     }
@@ -197,13 +226,17 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color(0xAA000000)) // semi-transparent black background
+            .background(OverlayBackground) // semi-transparent black background
+            .padding(12.dp)
     ) {
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(24.dp),
+                .background(
+                    TaskInputOverlayBackground,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -224,10 +257,13 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
             var deadlineText by remember { mutableStateOf("") }
 
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
                 value = taskText,
                 onValueChange = { taskText = it },
-                label = { Text("Task Description") }
+                label = { Text("Task Description")
+                }
             )
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -235,7 +271,9 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
                 onValueChange = { deadlineText = it },
                 label = { Text("Deadline") }
             )
-            Button(onClick = { onDismiss() }) {
+            Button(
+                onClick = { onDismiss() }
+            ) {
                 Text("Save Task")
             }
         }
@@ -243,19 +281,84 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun QuadrantBox(title: String, color: Color, modifier: Modifier = Modifier) {
+fun QuadrantBox(
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
         contentAlignment = Alignment.TopStart,
         modifier = modifier
             .fillMaxHeight()
             .background(color, shape = RoundedCornerShape(16.dp))
-            .clickable { /* Later: open task list */ }
-            .padding(12.dp)
+            .clickable(
+                onClick = onClick
+            )
+            .padding(8.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = typography.titleLarge,
             color = TextPrimary
         )
+    }
+}
+
+@Composable
+fun ExpandedQuadrant(
+    quadrantName: String,
+    color: Color,
+    onClose: () -> Unit
+) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(OverlayBackground) // semi-transparent dark background
+    ) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(24.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(0.8f), // slightly smaller than full screen
+            shape = RoundedCornerShape(16.dp),
+            color = color,
+            tonalElevation = 8.dp, // little shadow
+            shadowElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = quadrantName,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = TextPrimary
+                    )
+                    IconButton(onClick = { onClose() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Close",
+                            tint = Color.Gray
+                        )
+                    }
+                }
+
+                // 🐾 Later here: List of tasks!
+
+                Text(
+                    text = "Here will be your tasks!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
+            }
+        }
     }
 }
