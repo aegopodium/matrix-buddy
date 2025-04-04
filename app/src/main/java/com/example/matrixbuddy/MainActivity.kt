@@ -23,15 +23,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.*
+
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MatrixBuddyTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MatrixBuddyApp(
-                        modifier = Modifier.padding(innerPadding))
+                var isSheetOpen by remember { mutableStateOf(false) }
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    floatingActionButton = {
+                        AddTaskButton(onClick = { isSheetOpen = true })
+                    },
+                    floatingActionButtonPosition = FabPosition.Center
+                ) { innerPadding ->
+                    Box(Modifier.padding(innerPadding)) {
+                        MatrixBuddyApp()
+
+                        if (isSheetOpen) {
+                            TaskInputOverlay(
+                                onDismiss = { isSheetOpen = false }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -43,14 +67,14 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .border(1.dp, Color.Red)
+            // .border(1.dp, Color.Red)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color.Red)
+                // .border(1.dp, Color.Red)
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -68,7 +92,7 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color.Red)
+                // .border(1.dp, Color.Red)
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -82,6 +106,49 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
                 color = Color(0xFFCFD8DC),
                 modifier = Modifier.weight(1f)
             )
+        }
+    }
+}
+
+@Composable
+fun AddTaskButton(onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = { onClick() }
+    ) {
+        Icon(Icons.Filled.Add, contentDescription = "Add Task")
+    }
+}
+
+@Composable
+fun TaskInputOverlay(onDismiss: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color(0xAA000000)) // semi-transparent black background
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            var taskText by remember { mutableStateOf("") }
+            var deadlineText by remember { mutableStateOf("") }
+
+            OutlinedTextField(
+                value = taskText,
+                onValueChange = { taskText = it },
+                label = { Text("Task Description") }
+            )
+            OutlinedTextField(
+                value = deadlineText,
+                onValueChange = { deadlineText = it },
+                label = { Text("Deadline") }
+            )
+            Button(onClick = { onDismiss() }) {
+                Text("Save Task")
+            }
         }
     }
 }
