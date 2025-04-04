@@ -33,15 +33,72 @@ import androidx.compose.runtime.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.IconButton
+import androidx.activity.compose.BackHandler
+import com.example.matrixbuddy.ui.theme.*
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.googlefonts.GoogleFont.Provider
+import androidx.compose.ui.text.googlefonts.Font as GoogleFontTypeface
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
+
+val provider = Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+val interFontFamily = FontFamily(
+    GoogleFontTypeface(
+        googleFont = GoogleFont("Inter"),
+        fontProvider = provider
+    )
+)
+
+val AppTypography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = interFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = interFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = interFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    )
+)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MatrixBuddyTheme {
+
                 var isSheetOpen by remember { mutableStateOf(false) }
+
                 Scaffold(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppBackground),
                     floatingActionButton = {
                         AddTaskButton(onClick = { isSheetOpen = true })
                     },
@@ -50,7 +107,11 @@ class MainActivity : ComponentActivity() {
                     Box(Modifier.padding(innerPadding)) {
                         MatrixBuddyApp()
 
-                        if (isSheetOpen) {
+                        AnimatedVisibility(
+                            visible = isSheetOpen,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 250)),
+                            exit = fadeOut(animationSpec = tween(durationMillis = 250))
+                        ) {
                             TaskInputOverlay(
                                 onDismiss = { isSheetOpen = false }
                             )
@@ -60,6 +121,17 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+fun MatrixBuddyTheme(
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colorScheme = LightColorScheme,
+        typography = AppTypography,
+        content = content
+    )
 }
 
 @Composable
@@ -80,12 +152,12 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
         ) {
             QuadrantBox(
                 title = "Important & Urgent",
-                color = Color(0xFFFFCDD2),
+                color = UrgentRed,
                 modifier = Modifier.weight(1f)
             )
             QuadrantBox(
                 title = "Important & Not Urgent",
-                color = Color(0xFFC8E6C9),
+                color = ImportantGreen,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -98,12 +170,12 @@ fun MatrixBuddyApp(modifier: Modifier = Modifier) {
         ) {
             QuadrantBox(
                 title = "Not Important & Urgent",
-                color = Color(0xFFFFF9C4),
+                color = NotImportantUrgentYellow,
                 modifier = Modifier.weight(1f)
             )
             QuadrantBox(
                 title = "Not Important & Not Urgent",
-                color = Color(0xFFCFD8DC),
+                color = NotImportantNotUrgentGray,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -121,6 +193,7 @@ fun AddTaskButton(onClick: () -> Unit) {
 
 @Composable
 fun TaskInputOverlay(onDismiss: () -> Unit) {
+    BackHandler(enabled = true, onBack = { onDismiss() })
     Box(
         Modifier
             .fillMaxSize()
@@ -133,15 +206,31 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = { onDismiss() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Close",
+                        tint = Color.Gray
+                    )
+                }
+            }
+
             var taskText by remember { mutableStateOf("") }
             var deadlineText by remember { mutableStateOf("") }
 
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = taskText,
                 onValueChange = { taskText = it },
                 label = { Text("Task Description") }
             )
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = deadlineText,
                 onValueChange = { deadlineText = it },
                 label = { Text("Deadline") }
@@ -156,16 +245,17 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
 @Composable
 fun QuadrantBox(title: String, color: Color, modifier: Modifier = Modifier) {
     Box(
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopStart,
         modifier = modifier
             .fillMaxHeight()
             .background(color, shape = RoundedCornerShape(16.dp))
             .clickable { /* Later: open task list */ }
+            .padding(12.dp)
     ) {
         Text(
             text = title,
-            fontSize = 16.sp,
-            color = Color.Black
+            style = MaterialTheme.typography.titleLarge,
+            color = TextPrimary
         )
     }
 }
