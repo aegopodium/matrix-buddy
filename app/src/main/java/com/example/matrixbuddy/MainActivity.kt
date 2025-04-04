@@ -122,11 +122,20 @@ class MainActivity : ComponentActivity() {
                             enter = fadeIn(animationSpec = tween(300)),
                             exit = fadeOut(animationSpec = tween(300))
                         ) {
-                            ExpandedQuadrant(
-                                quadrantName = selectedQuadrant!!.name,
-                                color = selectedQuadrant!!.color,
-                                onClose = { selectedQuadrant = null }
-                            )
+//                            ExpandedQuadrant(
+//                                quadrantName = selectedQuadrant!!.name,
+//                                color = selectedQuadrant!!.color,
+//                                onClose = { selectedQuadrant = null }
+//                            )
+//                            ### causes app crash ###
+                            selectedQuadrant?.let { quadrant ->
+                                ExpandedQuadrant(
+                                    quadrantName = quadrant.name,
+                                    color = quadrant.color,
+                                    onClose = { selectedQuadrant = null }
+                                )
+                            }
+
                         }
 
                         AnimatedVisibility(
