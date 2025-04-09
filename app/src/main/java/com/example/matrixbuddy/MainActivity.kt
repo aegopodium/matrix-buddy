@@ -2,96 +2,93 @@ package com.example.matrixbuddy
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.border
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.matrixbuddy.ui.theme.MatrixBuddyTheme
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.*
-
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.activity.compose.BackHandler
-import com.example.matrixbuddy.ui.theme.*
-
-import androidx.compose.material3.Typography
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.text.googlefonts.GoogleFont.Provider
-import androidx.compose.ui.text.googlefonts.Font as GoogleFontTypeface
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
-
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.example.matrixbuddy.ui.theme.AppBackground
+import com.example.matrixbuddy.ui.theme.AppTypography
+import com.example.matrixbuddy.ui.theme.ImportantGreen
+import com.example.matrixbuddy.ui.theme.LightColorScheme
+import com.example.matrixbuddy.ui.theme.NotImportantNotUrgentGray
+import com.example.matrixbuddy.ui.theme.NotImportantUrgentYellow
+import com.example.matrixbuddy.ui.theme.OverlayBackground
+import com.example.matrixbuddy.ui.theme.TaskInputOverlayBackground
+import com.example.matrixbuddy.ui.theme.TextPrimary
+import com.example.matrixbuddy.ui.theme.UrgentRed
 
 data class Quadrant(
     val name: String,
     val color: Color
 )
 
-val provider = Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
+//val provider = Provider(
+//    providerAuthority = "com.google.android.gms.fonts",
+//    providerPackage = "com.google.android.gms",
+//    certificates = R.array.com_google_android_gms_fonts_certs
+//)
 
-val interFontFamily = FontFamily(
-    GoogleFontTypeface(
-        googleFont = GoogleFont("Inter"),
-        fontProvider = provider
-    )
-)
+//val interFontFamily = FontFamily(
+//    GoogleFontTypeface(
+//        googleFont = GoogleFont("Inter"),
+//        fontProvider = provider
+//    )
+//)
 
-val AppTypography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = interFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = interFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = interFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
-    )
-)
+//val AppTypography = Typography(
+//    bodyLarge = TextStyle(
+//        fontFamily = interFontFamily,
+//        fontWeight = FontWeight.Normal,
+//        fontSize = 16.sp
+//    ),
+//    bodyMedium = TextStyle(
+//        fontFamily = interFontFamily,
+//        fontWeight = FontWeight.Normal,
+//        fontSize = 14.sp
+//    ),
+//    titleLarge = TextStyle(
+//        fontFamily = interFontFamily,
+//        fontWeight = FontWeight.Bold,
+//        fontSize = 18.sp
+//    )
+//)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,7 +111,9 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         MatrixBuddyApp(
-                            onQuadrantClick = { name, color -> selectedQuadrant = Quadrant(name, color) }
+                            onQuadrantClick = { name, color ->
+                                selectedQuadrant = Quadrant(name, color)
+                            }
                         )
 
                         AnimatedVisibility(
@@ -158,7 +157,7 @@ class MainActivity : ComponentActivity() {
 fun MatrixBuddyTheme(
     content: @Composable () -> Unit,
 
-) {
+    ) {
     MaterialTheme(
         colorScheme = LightColorScheme,
         typography = AppTypography,
@@ -169,7 +168,8 @@ fun MatrixBuddyTheme(
 @Composable
 fun MatrixBuddyApp(
     modifier: Modifier = Modifier,
-    onQuadrantClick: (String, Color) -> Unit) {
+    onQuadrantClick: (String, Color) -> Unit
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -271,7 +271,8 @@ fun TaskInputOverlay(onDismiss: () -> Unit) {
                     .padding(vertical = 4.dp),
                 value = taskText,
                 onValueChange = { taskText = it },
-                label = { Text("Task Description")
+                label = {
+                    Text("Task Description")
                 }
             )
             OutlinedTextField(
